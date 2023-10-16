@@ -15,11 +15,13 @@ export const useStore = defineStore('index', {
                 { id: 2, label: "Контакт" },
                 { id: 3, label: "Компания" },
             ],
-        }
+        },
+        isLoading: false
     }),
     actions: {
         createItem() {
-            if (this.select.activeID === 0) return;
+            if (this.select.activeID === 0 || this.isLoading) return;
+            this.isLoading = true;
             const links = ["/api/v4/leads", "/api/v4/contacts", "/api/v4/companies"];
             return axios(this.api.url + links[this.select.activeID - 1], {
                 method: "POST",
@@ -34,8 +36,9 @@ export const useStore = defineStore('index', {
                 let result = res.data._embedded[resultNames[this.select.activeID - 1]][0]
                 result.label=this.select.options[this.select.activeID].label
                 this.resultList.push(result);
+                this.isLoading = false
                 return true;
-            });
+            }).catch(()=>this.isLoading = false);
         },
         getToken() {
             axios("https://test.gnzs.ru/oauth/get-token.php", {

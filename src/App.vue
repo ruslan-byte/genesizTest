@@ -4,7 +4,12 @@
       <h2 class="main-page__title">Тестовое задание</h2>
       <div class="main-page__filter">
         <gSelect :options="select.options" v-model="select.activeID"></gSelect>
-        <gButton class="main-page__button" @click="createItem">Создать</gButton>
+        <gButton
+          class="main-page__button"
+          @click="createItem"
+          :isLoading="isLoading"
+          >Создать</gButton
+        >
       </div>
       <div class="main-page__result">
         <ul>
@@ -22,7 +27,7 @@ import { onMounted } from "vue";
 import { useStore } from "@/store/index";
 import { storeToRefs } from "pinia";
 const store = useStore();
-const { select, resultList } = storeToRefs(store);
+const { select, resultList, isLoading } = storeToRefs(store);
 const { createItem, getToken } = store;
 onMounted(() => {
   getToken();
