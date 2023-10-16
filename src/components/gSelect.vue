@@ -1,14 +1,17 @@
 <template>
-  <div
-    class="select"
-    v-click-outside="() => (isOpen = false)"
-    @click="() => (isOpen = true)"
-  >
-    <input type="text" class="select__fueld" disabled />
+  <div class="select" v-click-outside="close">
+    <label @click="toggle" class="select__label">
+      <input type="text" class="select__fueld" disabled :value="activeLabel" />
+    </label>
     <div class="select__option-container" v-if="isOpen">
       <ul class="select__option-list">
-        <li class="select__option" v-for="item of [1, 2, 3]" :key="item">
-          {{ item }}
+        <li
+          class="select__option"
+          v-for="item of options"
+          :key="item.id"
+          @click="selectItem(item.id)"
+        >
+          {{ item.label }}
         </li>
       </ul>
     </div>
@@ -17,9 +20,23 @@
 <script setup>
 import vClickOutsideDirective from "click-outside-vue3";
 const vClickOutside = vClickOutsideDirective.directive;
-import { ref } from "vue";
+import { ref, computed } from "vue";
 const isOpen = ref(false);
-defineProps(["options"]);
+const props = defineProps(["options", "modelValue"]);
+const emit = defineEmits(["update:modelValue"]);
+function close() {
+  isOpen.value = false;
+}
+function toggle() {
+  isOpen.value = !isOpen.value;
+}
+function selectItem(id) {
+  emit("update:modelValue", id);
+  close();
+}
+const activeLabel = computed(
+  () => props.options.find((item) => item.id === props.modelValue).label
+);
 </script>
 <style lang="scss">
 .select {
@@ -31,6 +48,12 @@ defineProps(["options"]);
   &:hover {
     border: 1px solid rgb(26, 26, 26);
   }
+  &__label {
+    display: inline-block;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
   &__fueld {
     height: 40px;
     box-sizing: border-box;
@@ -38,6 +61,7 @@ defineProps(["options"]);
     border: none;
     border-radius: 6px;
     pointer-events: none;
+    padding-left: 12px;
   }
   &__option-container {
     position: absolute;

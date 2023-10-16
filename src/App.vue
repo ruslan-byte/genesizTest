@@ -3,10 +3,16 @@
     <div class="main-page__container">
       <h2 class="main-page__title">Тестовое задание</h2>
       <div class="main-page__filter">
-        <gSelect></gSelect>
-        <gButton class="main-page__button" @click="fetch">Создать</gButton>
+        <gSelect :options="select.options" v-model="select.activeID"></gSelect>
+        <gButton class="main-page__button" @click="api.createItem"
+          >Создать</gButton
+        >
       </div>
-      <div class="main-page__result"></div>
+      <div class="main-page__result">
+        <ul>
+          <li v-for="item of resultList">{{ item }}</li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
@@ -17,17 +23,6 @@ import gSelect from "./components/gSelect.vue";
 import axios from "axios";
 import { onMounted } from "vue";
 import { ref } from "vue";
-function fetch() {
-  axios(api.url.value + "/api/v4/leads", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + api.accessToken.value,
-    },
-    mode: "no-cors",
-    data: { name: [] },
-  });
-}
 onMounted(() => {
   getToken();
 });
@@ -46,7 +41,35 @@ function getToken() {
 const api = {
   url: ref(""),
   accessToken: ref(""),
+  createItem() {
+    if (select.value.activeID === 0) return;
+    const links = ["/api/v4/leads", "/api/v4/contacts", "/api/v4/companies"];
+    axios(api.url.value + links[select.value.activeID - 1], {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + api.accessToken.value,
+      },
+      mode: "no-cors",
+      data: { name: [] },
+    }).then((res) => {
+      const resultNames = ["leads", "contacts", "companies"];
+      resultList.value.push(
+        ...res.data._embedded[resultNames[select.value.activeID - 1]]
+      );
+    });
+  },
 };
+const select = ref({
+  activeID: 0,
+  options: [
+    { id: 0, label: "Не выбрано" },
+    { id: 1, label: "Сделка" },
+    { id: 2, label: "Контакт" },
+    { id: 3, label: "Компания" },
+  ],
+});
+const resultList = ref([]);
 </script>
 
 <style lang="scss">
@@ -80,7 +103,8 @@ body {
 
   &__result {
     border: 1px solid grey;
-    height: 100px;
+    min-height: 100px;
+    border-radius: 6px;
   }
 }
 </style>
